@@ -22,7 +22,7 @@
 #include "stdafx.h"
 
 #define ENABLE_SDL 1
-#define ENABLE_YUVFILE 1
+#define ENABLE_YUVFILE 0
 
 extern "C"
 {
