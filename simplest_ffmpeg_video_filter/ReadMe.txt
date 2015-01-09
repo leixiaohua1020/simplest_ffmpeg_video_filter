@@ -1,36 +1,18 @@
-﻿========================================================================
-    控制台应用程序：simplest_ffmpeg_video_filter 项目概述
-========================================================================
+﻿最简单的基于FFmpeg的AVFilter例子（叠加水印）
+Simplest FFmpeg AVfilter Example (Watermark)
 
-应用程序向导已为您创建了此 simplest_ffmpeg_video_filter 应用程序。
+雷霄骅 Lei Xiaohua
+leixiaohua1020@126.com
+中国传媒大学/数字电视技术
+Communication University of China / Digital TV Technology
+http://blog.csdn.net/leixiaohua1020
 
-本文件概要介绍组成 simplest_ffmpeg_video_filter 应用程序的每个文件的内容。
+本程序使用FFmpeg的AVfilter实现了视频的水印叠加功能。
+可以将一张PNG图片作为水印叠加到视频上。
+是最简单的FFmpeg的AVFilter方面的教程。
+适合FFmpeg的初学者。
 
-
-simplest_ffmpeg_video_filter.vcxproj
-    这是使用应用程序向导生成的 VC++ 项目的主项目文件，
-    其中包含生成该文件的 Visual C++ 
-    的版本信息，以及有关使用应用程序向导选择的平台、配置和项目功能的信息。
-
-simplest_ffmpeg_video_filter.vcxproj.filters
-    这是使用“应用程序向导”生成的 VC++ 项目筛选器文件。 
-    它包含有关项目文件与筛选器之间的关联信息。 在 IDE 
-    中，通过这种关联，在特定节点下以分组形式显示具有相似扩展名的文件。
-    例如，“.cpp”文件与“源文件”筛选器关联。
-
-simplest_ffmpeg_video_filter.cpp
-    这是主应用程序源文件。
-
-/////////////////////////////////////////////////////////////////////////////
-其他标准文件：
-
-StdAfx.h，StdAfx.cpp
-    这些文件用于生成名为 simplest_ffmpeg_video_filter.pch 的预编译头 (PCH) 文件和
-    名为 StdAfx.obj 的预编译类型文件。
-
-/////////////////////////////////////////////////////////////////////////////
-其他注释：
-
-应用程序向导使用“TODO:”注释来指示应添加或自定义的源代码部分。
-
-/////////////////////////////////////////////////////////////////////////////
+This software uses FFmpeg's AVFilter to add watermark in a video file.
+It can add a PNG format picture as watermark to a video file.
+It's the simplest example based on FFmpeg's AVFilter. 
+Suitable for beginner of FFmpeg 

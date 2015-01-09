@@ -1,4 +1,4 @@
-/* 
+/** 
  * 最简单的基于FFmpeg的AVFilter例子（叠加水印）
  * Simplest FFmpeg AVfilter Example (Watermark)
  *
@@ -19,7 +19,7 @@
  * Suitable for beginner of FFmpeg 
  *
  */
-#include "stdafx.h"
+#include <stdio.h>
 
 #define ENABLE_SDL 1
 #define ENABLE_YUVFILE 0
@@ -34,7 +34,7 @@ extern "C"
 #include "libavfilter/buffersrc.h"
 #include "libavutil/avutil.h"
 #include "libswscale/swscale.h"
-	//SDL
+//SDL
 #include "sdl/SDL.h"
 #include "sdl/SDL_thread.h"
 };
@@ -58,19 +58,19 @@ static int open_input_file(const char *filename)
     AVCodec *dec;
 
     if ((ret = avformat_open_input(&pFormatCtx, filename, NULL, NULL)) < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
+        printf( "Cannot open input file\n");
         return ret;
     }
 
     if ((ret = avformat_find_stream_info(pFormatCtx, NULL)) < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        printf( "Cannot find stream information\n");
         return ret;
     }
 
     /* select the video stream */
     ret = av_find_best_stream(pFormatCtx, AVMEDIA_TYPE_VIDEO, -1, -1, &dec, 0);
     if (ret < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot find a video stream in the input file\n");
+        printf( "Cannot find a video stream in the input file\n");
         return ret;
     }
     video_stream_index = ret;
@@ -78,7 +78,7 @@ static int open_input_file(const char *filename)
 
     /* init the video decoder */
     if ((ret = avcodec_open2(pCodecCtx, dec, NULL)) < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot open video decoder\n");
+        printf( "Cannot open video decoder\n");
         return ret;
     }
 
@@ -93,7 +93,7 @@ static int init_filters(const char *filters_descr)
     AVFilter *buffersink = avfilter_get_by_name("ffbuffersink");
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs  = avfilter_inout_alloc();
-    enum PixelFormat pix_fmts[] = { PIX_FMT_GRAY8, PIX_FMT_NONE };
+    enum PixelFormat pix_fmts[] = { PIX_FMT_YUV420P, PIX_FMT_NONE };
     AVBufferSinkParams *buffersink_params;
 
     filter_graph = avfilter_graph_alloc();
@@ -108,7 +108,7 @@ static int init_filters(const char *filters_descr)
     ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
                                        args, NULL, filter_graph);
     if (ret < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot create buffer source\n");
+        printf("Cannot create buffer source\n");
         return ret;
     }
 
@@ -119,7 +119,7 @@ static int init_filters(const char *filters_descr)
                                        NULL, buffersink_params, filter_graph);
     av_free(buffersink_params);
     if (ret < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Cannot create buffer sink\n");
+        printf("Cannot create buffer sink\n");
         return ret;
     }
 
@@ -144,23 +144,18 @@ static int init_filters(const char *filters_descr)
 }
 
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char* argv[])
 {
     int ret;
     AVPacket packet;
     AVFrame frame;
     int got_frame;
 
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s file\n", argv[0]);
-        return -1;
-    }
-
     avcodec_register_all();
     av_register_all();
     avfilter_register_all();
 
-    if ((ret = open_input_file(argv[1])) < 0)
+    if ((ret = open_input_file("cuc_ieschool.flv")) < 0)
         goto end;
     if ((ret = init_filters(filter_descr)) < 0)
         goto end;
@@ -194,7 +189,7 @@ int _tmain(int argc, _TCHAR* argv[])
             got_frame = 0;
             ret = avcodec_decode_video2(pCodecCtx, &frame, &got_frame, &packet);
             if (ret < 0) {
-                av_log(NULL, AV_LOG_ERROR, "Error decoding video\n");
+                printf( "Error decoding video\n");
                 break;
             }
 
@@ -203,7 +198,7 @@ int _tmain(int argc, _TCHAR* argv[])
 				
                 /* push the decoded frame into the filtergraph */
                 if (av_buffersrc_add_frame(buffersrc_ctx, &frame) < 0) {
-                    av_log(NULL, AV_LOG_ERROR, "Error while feeding the filtergraph\n");
+                    printf( "Error while feeding the filtergraph\n");
                     break;
                 }
 
@@ -259,7 +254,7 @@ end:
     if (ret < 0 && ret != AVERROR_EOF) {
         char buf[1024];
         av_strerror(ret, buf, sizeof(buf));
-        fprintf(stderr, "Error occurred: %s\n", buf);
+        printf("Error occurred: %s\n", buf);
         return -1;
     }
 
