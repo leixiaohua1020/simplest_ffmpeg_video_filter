@@ -12,11 +12,7 @@ http://blog.csdn.net/leixiaohua1020
 是最简单的FFmpeg的AVFilter方面的教程。
 适合FFmpeg的初学者。
 
-FFmpeg类库版本：2014.5.6
-
 This software uses FFmpeg's AVFilter to add watermark in a video file.
 It can add a PNG format picture as watermark to a video file.
 It's the simplest example based on FFmpeg's AVFilter. 
 Suitable for beginner of FFmpeg 
-
-FFmpeg version: 2014.5.6
