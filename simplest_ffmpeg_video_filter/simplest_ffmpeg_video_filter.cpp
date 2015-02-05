@@ -21,9 +21,10 @@
  */
 #include <stdio.h>
 
-#define ENABLE_SDL 1
-#define ENABLE_YUVFILE 0
+#define __STDC_CONSTANT_MACROS
 
+#ifdef _WIN32
+//Windows
 extern "C"
 {
 #include "libavcodec/avcodec.h"
@@ -34,10 +35,32 @@ extern "C"
 #include "libavfilter/buffersrc.h"
 #include "libavutil/avutil.h"
 #include "libswscale/swscale.h"
-//SDL
 #include "sdl/SDL.h"
-#include "sdl/SDL_thread.h"
 };
+#else
+//Linux...
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavfilter/avfiltergraph.h>
+#include <libavfilter/avcodec.h>
+#include <libavfilter/buffersink.h>
+#include <libavfilter/buffersrc.h>
+#include <libavutil/avutil.h>
+#include <libswscale/swscale.h>
+#include <sdl/SDL.h>
+#ifdef __cplusplus
+};
+#endif
+#endif
+
+//Enable SDL?
+#define ENABLE_SDL 1
+//Output YUV data?
+#define ENABLE_YUVFILE 0
 
 const char *filter_descr = "movie=my_logo.png[wm];[in][wm]overlay=5:5[out]";
 
@@ -176,7 +199,8 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	bmp = SDL_CreateYUVOverlay(pCodecCtx->width, pCodecCtx->height,SDL_YV12_OVERLAY, screen); 
-#endif
+	SDL_WM_SetCaption("Simplest FFmpeg Video Filter",NULL);
+	#endif
 
     /* read all packets */
     while (1) {
