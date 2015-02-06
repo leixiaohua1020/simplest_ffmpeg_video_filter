@@ -24,6 +24,7 @@
 #define __STDC_CONSTANT_MACROS
 
 #ifdef _WIN32
+#define snprintf _snprintf
 //Windows
 extern "C"
 {
@@ -122,7 +123,7 @@ static int init_filters(const char *filters_descr)
     filter_graph = avfilter_graph_alloc();
 
     /* buffer video source: the decoded frames from the decoder will be inserted here. */
-    _snprintf(args, sizeof(args),
+    snprintf(args, sizeof(args),
             "video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
             pCodecCtx->width, pCodecCtx->height, pCodecCtx->pix_fmt,
             pCodecCtx->time_base.num, pCodecCtx->time_base.den,
@@ -157,7 +158,7 @@ static int init_filters(const char *filters_descr)
     inputs->pad_idx    = 0;
     inputs->next       = NULL;
 
-    if ((ret = avfilter_graph_parse(filter_graph, filters_descr,
+    if ((ret = avfilter_graph_parse_ptr(filter_graph, filters_descr,
                                     &inputs, &outputs, NULL)) < 0)
         return ret;
 
