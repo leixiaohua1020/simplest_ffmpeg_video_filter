@@ -36,7 +36,7 @@ extern "C"
 #include "libavfilter/buffersrc.h"
 #include "libavutil/avutil.h"
 #include "libswscale/swscale.h"
-#include "sdl/SDL.h"
+#include "SDL/SDL.h"
 };
 #else
 //Linux...
@@ -52,7 +52,7 @@ extern "C"
 #include <libavfilter/buffersrc.h>
 #include <libavutil/avutil.h>
 #include <libswscale/swscale.h>
-#include <sdl/SDL.h>
+#include <SDL/SDL.h>
 #ifdef __cplusplus
 };
 #endif
