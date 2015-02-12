@@ -4,3 +4,6 @@ Release/
 *.yuv
 *.exe
 *.obj
+*.out
+*.exe.manifest
+*.out.dSYM/
