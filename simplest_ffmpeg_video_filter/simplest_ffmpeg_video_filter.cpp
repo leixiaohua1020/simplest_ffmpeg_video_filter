@@ -200,8 +200,9 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	bmp = SDL_CreateYUVOverlay(pCodecCtx->width, pCodecCtx->height,SDL_YV12_OVERLAY, screen); 
+
 	SDL_WM_SetCaption("Simplest FFmpeg Video Filter",NULL);
-	#endif
+#endif
 
     /* read all packets */
     while (1) {
@@ -238,16 +239,17 @@ int main(int argc, char* argv[])
                     if (picref) {
 #if ENABLE_YUVFILE
 						int y_size=picref->video->w*picref->video->h;
-						fwrite(picref->data[0],1,y_size,fp_yuv);
-						fwrite(picref->data[1],1,y_size/4,fp_yuv);
-						fwrite(picref->data[2],1,y_size/4,fp_yuv);
+						fwrite(picref->data[0],1,y_size,fp_yuv);     //Y
+						fwrite(picref->data[1],1,y_size/4,fp_yuv);   //U
+						fwrite(picref->data[2],1,y_size/4,fp_yuv);   //V
 #endif
 						
 #if ENABLE_SDL
 						SDL_LockYUVOverlay(bmp);
-						bmp->pixels[0]=picref->data[0];
-						bmp->pixels[2]=picref->data[1];
-						bmp->pixels[1]=picref->data[2];     
+						int y_size=picref->video->w*picref->video->h;
+						memcpy(bmp->pixels[0],picref->data[0],y_size);   //Y
+						memcpy(bmp->pixels[2],picref->data[1],y_size/4); //U
+						memcpy(bmp->pixels[1],picref->data[2],y_size/4); //V 
 						bmp->pitches[0]=picref->linesize[0];
 						bmp->pitches[2]=picref->linesize[1];   
 						bmp->pitches[1]=picref->linesize[2];
