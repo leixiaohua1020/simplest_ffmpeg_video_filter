@@ -1,5 +1,5 @@
-最简单的基于FFmpeg的AVFilter例子（叠加水印）
-Simplest FFmpeg AVfilter Example (Watermark)
+最简单的基于FFmpeg的AVFilter例子
+Simplest FFmpeg AVfilter Example
 
 雷霄骅 Lei Xiaohua
 leixiaohua1020@126.com
@@ -7,12 +7,10 @@ leixiaohua1020@126.com
 Communication University of China / Digital TV Technology
 http://blog.csdn.net/leixiaohua1020
  
-本程序使用FFmpeg的AVfilter实现了视频的水印叠加功能。
-可以将一张PNG图片作为水印叠加到视频上。
-是最简单的FFmpeg的AVFilter方面的教程。
-适合FFmpeg的初学者。
+本程序使用包含下面两个项目：
+simplest_ffmpeg_video_filter：可以将一张PNG图片作为水印叠加到视频上，结合使用了libavcodec等类库。
+simplest_ffmpeg_video_filter_pure：可以给YUV像素数据加特效，只用了libavfilter库。
 
-This software uses FFmpeg's AVFilter to add watermark in a video file.
-It can add a PNG format picture as watermark to a video file.
-It's the simplest example based on FFmpeg's AVFilter. 
-Suitable for beginner of FFmpeg 
+This project contains 2 projects:
+simplest_ffmpeg_video_filter: Put a PNG picture as watermark to a video file, use some libraries such as libavcodec.
+simplest_ffmpeg_video_filter_pure：Add excellent effect to YUV raw data, only use libavfilter.

@@ -61,7 +61,7 @@ extern "C"
 //Enable SDL?
 #define ENABLE_SDL 1
 //Output YUV data?
-#define ENABLE_YUVFILE 0
+#define ENABLE_YUVFILE 1
 
 const char *filter_descr = "movie=my_logo.png[wm];[in][wm]overlay=5:5[out]";
 
@@ -71,8 +71,6 @@ AVFilterContext *buffersink_ctx;
 AVFilterContext *buffersrc_ctx;
 AVFilterGraph *filter_graph;
 static int video_stream_index = -1;
-static int64_t last_pts = AV_NOPTS_VALUE;
-
 
 
 
@@ -175,7 +173,6 @@ int main(int argc, char* argv[])
     AVFrame frame;
     int got_frame;
 
-    avcodec_register_all();
     av_register_all();
     avfilter_register_all();
 
@@ -207,7 +204,9 @@ int main(int argc, char* argv[])
     /* read all packets */
     while (1) {
         AVFilterBufferRef *picref;
-        if ((ret = av_read_frame(pFormatCtx, &packet)) < 0)
+
+		ret = av_read_frame(pFormatCtx, &packet);
+        if (ret< 0)
             break;
 
         if (packet.stream_index == video_stream_index) {
@@ -238,10 +237,16 @@ int main(int argc, char* argv[])
 
                     if (picref) {
 #if ENABLE_YUVFILE
-						int y_size=picref->video->w*picref->video->h;
-						fwrite(picref->data[0],1,y_size,fp_yuv);     //Y
-						fwrite(picref->data[1],1,y_size/4,fp_yuv);   //U
-						fwrite(picref->data[2],1,y_size/4,fp_yuv);   //V
+						//Y, U, V
+						for(int i=0;i<picref->video->h;i++){
+							fwrite(picref->data[0]+picref->linesize[0]*i,1,picref->video->w,fp_yuv);
+						}
+						for(int i=0;i<picref->video->h/2;i++){
+							fwrite(picref->data[1]+picref->linesize[1]*i,1,picref->video->w/2,fp_yuv);
+						}
+						for(int i=0;i<picref->video->h/2;i++){
+							fwrite(picref->data[2]+picref->linesize[2]*i,1,picref->video->w/2,fp_yuv);
+						}
 #endif
 						
 #if ENABLE_SDL
