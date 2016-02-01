@@ -44,26 +44,23 @@ extern "C"
 #include <libavfilter/buffersink.h>
 #include <libavfilter/buffersrc.h>
 #include <libavutil/avutil.h>
+#include <libavutil/imgutils.h>
 #ifdef __cplusplus
 };
 #endif
 #endif
 
 
-//const char *filter_descr = "lutyuv='u=128:v=128'";
-const char *filter_descr = "boxblur";
-//const char *filter_descr = "hflip";
-//const char *filter_descr = "hue='h=60:s=-3'";
-//const char *filter_descr = "crop=2/3*in_w:2/3*in_h";
-//const char *filter_descr = "drawbox=x=100:y=100:w=100:h=100:color=pink@0.5";
+
 
 int main(int argc, char* argv[])
 {
     int ret;
-    AVFrame *frame;
-	uint8_t *frame_buffer;
+    AVFrame *frame_in;
+	AVFrame *frame_out;
+	unsigned char *frame_buffer_in;
+	unsigned char *frame_buffer_out;
 
-    int got_frame;
 	AVFilterContext *buffersink_ctx;
 	AVFilterContext *buffersrc_ctx;
 	AVFilterGraph *filter_graph;
@@ -84,6 +81,14 @@ int main(int argc, char* argv[])
 		printf("Error open output file.\n");
 		return -1;
 	}
+
+	//const char *filter_descr = "lutyuv='u=128:v=128'";
+	const char *filter_descr = "boxblur";
+	//const char *filter_descr = "hflip";
+	//const char *filter_descr = "hue='h=60:s=-3'";
+	//const char *filter_descr = "crop=2/3*in_w:2/3*in_h";
+	//const char *filter_descr = "drawbox=x=100:y=100:w=100:h=100:color=pink@0.5";
+	//const char *filter_descr = "drawtext=fontfile=arial.ttf:fontcolor=green:fontsize=30:text='Lei Xiaohua'";
 
     avfilter_register_all();
 
@@ -139,60 +144,60 @@ int main(int argc, char* argv[])
 	if ((ret = avfilter_graph_config(filter_graph, NULL)) < 0)
 		return ret;
 
-	frame=av_frame_alloc();
-	frame_buffer=(uint8_t *)av_malloc(avpicture_get_size(PIX_FMT_YUV420P, in_width,in_height));
-	avpicture_fill((AVPicture *)frame, frame_buffer, PIX_FMT_YUV420P,in_width, in_height);
-	frame->width=in_width;
-	frame->height=in_height;
-	frame->format=PIX_FMT_YUV420P;
+	frame_in=av_frame_alloc();
+	frame_buffer_in=(unsigned char *)av_malloc(av_image_get_buffer_size(PIX_FMT_YUV420P, in_width,in_height,1));
+	av_image_fill_arrays(frame_in->data, frame_in->linesize,frame_buffer_in,
+		PIX_FMT_YUV420P,in_width, in_height,1);
 
+	frame_out=av_frame_alloc();
+	frame_buffer_out=(unsigned char *)av_malloc(av_image_get_buffer_size(PIX_FMT_YUV420P, in_width,in_height,1));
+	av_image_fill_arrays(frame_out->data, frame_out->linesize,frame_buffer_out,
+		PIX_FMT_YUV420P,in_width, in_height,1);
 
+	frame_in->width=in_width;
+	frame_in->height=in_height;
+	frame_in->format=PIX_FMT_YUV420P;
+	
     while (1) {
 
-        AVFilterBufferRef *picref;
-
-		if(fread(frame_buffer, 1, in_width*in_height*3/2, fp_in)!= in_width*in_height*3/2){
+		if(fread(frame_buffer_in, 1, in_width*in_height*3/2, fp_in)!= in_width*in_height*3/2){
 			break;
 		}
 		//input Y,U,V
-		frame->data[0]=frame_buffer;
-		frame->data[1]=frame_buffer+in_width*in_height;
-		frame->data[2]=frame_buffer+in_width*in_height*5/4;
+		frame_in->data[0]=frame_buffer_in;
+		frame_in->data[1]=frame_buffer_in+in_width*in_height;
+		frame_in->data[2]=frame_buffer_in+in_width*in_height*5/4;
 
-        if (av_buffersrc_add_frame(buffersrc_ctx, frame) < 0) {
-            printf( "Error while feeding the filtergraph\n");
+        if (av_buffersrc_add_frame(buffersrc_ctx, frame_in) < 0) {
+            printf( "Error while add frame.\n");
             break;
         }
 
         /* pull filtered pictures from the filtergraph */
-        ret = av_buffersink_get_buffer_ref(buffersink_ctx, &picref, 0);
+		ret = av_buffersink_get_frame(buffersink_ctx, frame_out);
         if (ret < 0)
             break;
 
-        if (picref) {
-			//output Y,U,V
-			if(picref->format==PIX_FMT_YUV420P){
-				for(int i=0;i<picref->video->h;i++){
-					fwrite(picref->data[0]+picref->linesize[0]*i,1,picref->video->w,fp_out);
-				}
-				for(int i=0;i<picref->video->h/2;i++){
-					fwrite(picref->data[1]+picref->linesize[1]*i,1,picref->video->w/2,fp_out);
-				}
-				for(int i=0;i<picref->video->h/2;i++){
-					fwrite(picref->data[2]+picref->linesize[2]*i,1,picref->video->w/2,fp_out);
-				}
+		//output Y,U,V
+		if(frame_out->format==PIX_FMT_YUV420P){
+			for(int i=0;i<frame_out->height;i++){
+				fwrite(frame_out->data[0]+frame_out->linesize[0]*i,1,frame_out->width,fp_out);
 			}
-			printf("Process 1 frame!\n");
-            avfilter_unref_bufferp(&picref);
-        }
-
+			for(int i=0;i<frame_out->height/2;i++){
+				fwrite(frame_out->data[1]+frame_out->linesize[1]*i,1,frame_out->width/2,fp_out);
+			}
+			for(int i=0;i<frame_out->height/2;i++){
+				fwrite(frame_out->data[2]+frame_out->linesize[2]*i,1,frame_out->width/2,fp_out);
+			}
+		}
+		printf("Process 1 frame!\n");
     }
 
 	fclose(fp_in);
 	fclose(fp_out);
 
-end:
-	av_frame_free(&frame);
+	av_frame_free(&frame_in);
+	av_frame_free(&frame_out);
     avfilter_graph_free(&filter_graph);
 
     return 0;
