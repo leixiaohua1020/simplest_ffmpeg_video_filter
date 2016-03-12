@@ -169,7 +169,9 @@ int main(int argc, char* argv[])
 {
     int ret;
     AVPacket packet;
-    AVFrame frame;
+    AVFrame *pFrame;
+	AVFrame *pFrame_out;
+
     int got_frame;
 
     av_register_all();
@@ -179,6 +181,7 @@ int main(int argc, char* argv[])
         goto end;
     if ((ret = init_filters(filter_descr)) < 0)
         goto end;
+
 #if ENABLE_YUVFILE
 	FILE *fp_yuv=fopen("test.yuv","wb+");
 #endif
@@ -200,87 +203,92 @@ int main(int argc, char* argv[])
 	SDL_WM_SetCaption("Simplest FFmpeg Video Filter",NULL);
 #endif
 
+	pFrame=av_frame_alloc();
+	pFrame_out=av_frame_alloc();
+
     /* read all packets */
     while (1) {
-        AVFilterBufferRef *picref;
 
 		ret = av_read_frame(pFormatCtx, &packet);
         if (ret< 0)
             break;
 
         if (packet.stream_index == video_stream_index) {
-            avcodec_get_frame_defaults(&frame);
             got_frame = 0;
-            ret = avcodec_decode_video2(pCodecCtx, &frame, &got_frame, &packet);
+            ret = avcodec_decode_video2(pCodecCtx, pFrame, &got_frame, &packet);
             if (ret < 0) {
                 printf( "Error decoding video\n");
                 break;
             }
 
             if (got_frame) {
-                frame.pts = av_frame_get_best_effort_timestamp(&frame);
+                pFrame->pts = av_frame_get_best_effort_timestamp(pFrame);
 				
                 /* push the decoded frame into the filtergraph */
-                if (av_buffersrc_add_frame(buffersrc_ctx, &frame) < 0) {
+                if (av_buffersrc_add_frame(buffersrc_ctx, pFrame) < 0) {
                     printf( "Error while feeding the filtergraph\n");
                     break;
                 }
 
                 /* pull filtered pictures from the filtergraph */
                 while (1) {
-                    ret = av_buffersink_get_buffer_ref(buffersink_ctx, &picref, 0);
-                    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-                        break;
-                    if (ret < 0)
-                        goto end;
 
-                    if (picref) {
+					ret = av_buffersink_get_frame(buffersink_ctx, pFrame_out);
+					if (ret < 0)
+						break;
+
+					printf("Process 1 frame!\n");
+
+                    if (pFrame_out->format==AV_PIX_FMT_YUV420P) {
 #if ENABLE_YUVFILE
 						//Y, U, V
-						for(int i=0;i<picref->video->h;i++){
-							fwrite(picref->data[0]+picref->linesize[0]*i,1,picref->video->w,fp_yuv);
+						for(int i=0;i<pFrame_out->height;i++){
+							fwrite(pFrame_out->data[0]+pFrame_out->linesize[0]*i,1,pFrame_out->width,fp_yuv);
 						}
-						for(int i=0;i<picref->video->h/2;i++){
-							fwrite(picref->data[1]+picref->linesize[1]*i,1,picref->video->w/2,fp_yuv);
+						for(int i=0;i<pFrame_out->height/2;i++){
+							fwrite(pFrame_out->data[1]+pFrame_out->linesize[1]*i,1,pFrame_out->width/2,fp_yuv);
 						}
-						for(int i=0;i<picref->video->h/2;i++){
-							fwrite(picref->data[2]+picref->linesize[2]*i,1,picref->video->w/2,fp_yuv);
+						for(int i=0;i<pFrame_out->height/2;i++){
+							fwrite(pFrame_out->data[2]+pFrame_out->linesize[2]*i,1,pFrame_out->width/2,fp_yuv);
 						}
 #endif
 						
 #if ENABLE_SDL
 						SDL_LockYUVOverlay(bmp);
-						int y_size=picref->video->w*picref->video->h;
-						memcpy(bmp->pixels[0],picref->data[0],y_size);   //Y
-						memcpy(bmp->pixels[2],picref->data[1],y_size/4); //U
-						memcpy(bmp->pixels[1],picref->data[2],y_size/4); //V 
-						bmp->pitches[0]=picref->linesize[0];
-						bmp->pitches[2]=picref->linesize[1];   
-						bmp->pitches[1]=picref->linesize[2];
+						int y_size=pFrame_out->width*pFrame_out->height;
+						memcpy(bmp->pixels[0],pFrame_out->data[0],y_size);   //Y
+						memcpy(bmp->pixels[2],pFrame_out->data[1],y_size/4); //U
+						memcpy(bmp->pixels[1],pFrame_out->data[2],y_size/4); //V 
+						bmp->pitches[0]=pFrame_out->linesize[0];
+						bmp->pitches[2]=pFrame_out->linesize[1];   
+						bmp->pitches[1]=pFrame_out->linesize[2];
 						SDL_UnlockYUVOverlay(bmp); 
 						rect.x = 0;    
 						rect.y = 0;    
-						rect.w = picref->video->w;    
-						rect.h = picref->video->h;    
+						rect.w = pFrame_out->width;    
+						rect.h = pFrame_out->height;    
 						SDL_DisplayYUVOverlay(bmp, &rect); 
 						//Delay 40ms
 						SDL_Delay(40);
 #endif
-                        avfilter_unref_bufferp(&picref);
                     }
+					av_frame_unref(pFrame_out);
                 }
             }
+			av_frame_unref(pFrame);
         }
         av_free_packet(&packet);
     }
 #if ENABLE_YUVFILE
 	fclose(fp_yuv);
 #endif
+
 end:
     avfilter_graph_free(&filter_graph);
     if (pCodecCtx)
         avcodec_close(pCodecCtx);
     avformat_close_input(&pFormatCtx);
+
 
     if (ret < 0 && ret != AVERROR_EOF) {
         char buf[1024];

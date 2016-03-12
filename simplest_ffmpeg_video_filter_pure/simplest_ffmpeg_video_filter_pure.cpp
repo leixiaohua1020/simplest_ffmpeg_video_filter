@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 	AVFilter *buffersink = avfilter_get_by_name("ffbuffersink");
 	AVFilterInOut *outputs = avfilter_inout_alloc();
 	AVFilterInOut *inputs  = avfilter_inout_alloc();
-	enum PixelFormat pix_fmts[] = { PIX_FMT_YUV420P, PIX_FMT_NONE };
+	enum PixelFormat pix_fmts[] = { AV_PIX_FMT_YUV420P, PIX_FMT_NONE };
 	AVBufferSinkParams *buffersink_params;
 
 	filter_graph = avfilter_graph_alloc();
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 	/* buffer video source: the decoded frames from the decoder will be inserted here. */
 	snprintf(args, sizeof(args),
 		"video_size=%dx%d:pix_fmt=%d:time_base=%d/%d:pixel_aspect=%d/%d",
-		in_width,in_height,PIX_FMT_YUV420P,
+		in_width,in_height,AV_PIX_FMT_YUV420P,
 		1, 25,1,1);
 
 	ret = avfilter_graph_create_filter(&buffersrc_ctx, buffersrc, "in",
@@ -145,18 +145,18 @@ int main(int argc, char* argv[])
 		return ret;
 
 	frame_in=av_frame_alloc();
-	frame_buffer_in=(unsigned char *)av_malloc(av_image_get_buffer_size(PIX_FMT_YUV420P, in_width,in_height,1));
+	frame_buffer_in=(unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, in_width,in_height,1));
 	av_image_fill_arrays(frame_in->data, frame_in->linesize,frame_buffer_in,
-		PIX_FMT_YUV420P,in_width, in_height,1);
+		AV_PIX_FMT_YUV420P,in_width, in_height,1);
 
 	frame_out=av_frame_alloc();
-	frame_buffer_out=(unsigned char *)av_malloc(av_image_get_buffer_size(PIX_FMT_YUV420P, in_width,in_height,1));
+	frame_buffer_out=(unsigned char *)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_YUV420P, in_width,in_height,1));
 	av_image_fill_arrays(frame_out->data, frame_out->linesize,frame_buffer_out,
-		PIX_FMT_YUV420P,in_width, in_height,1);
+		AV_PIX_FMT_YUV420P,in_width, in_height,1);
 
 	frame_in->width=in_width;
 	frame_in->height=in_height;
-	frame_in->format=PIX_FMT_YUV420P;
+	frame_in->format=AV_PIX_FMT_YUV420P;
 	
     while (1) {
 
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
             break;
 
 		//output Y,U,V
-		if(frame_out->format==PIX_FMT_YUV420P){
+		if(frame_out->format==AV_PIX_FMT_YUV420P){
 			for(int i=0;i<frame_out->height;i++){
 				fwrite(frame_out->data[0]+frame_out->linesize[0]*i,1,frame_out->width,fp_out);
 			}
