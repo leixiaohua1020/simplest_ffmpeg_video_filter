@@ -191,6 +191,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		printf("Process 1 frame!\n");
+		av_frame_unref(frame_out);
     }
 
 	fclose(fp_in);
@@ -202,5 +203,4 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-
 
