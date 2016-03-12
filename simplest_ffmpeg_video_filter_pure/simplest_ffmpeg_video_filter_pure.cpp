@@ -89,8 +89,8 @@ int main(int argc, char* argv[])
 	//const char *filter_descr = "crop=2/3*in_w:2/3*in_h";
 	//const char *filter_descr = "drawbox=x=100:y=100:w=100:h=100:color=pink@0.5";
 	//const char *filter_descr = "drawtext=fontfile=arial.ttf:fontcolor=green:fontsize=30:text='Lei Xiaohua'";
-
-    avfilter_register_all();
+	
+	avfilter_register_all();
 
 	char args[512];
 	AVFilter *buffersrc  = avfilter_get_by_name("buffer");

@@ -31,7 +31,6 @@ extern "C"
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #include "libavfilter/avfiltergraph.h"
-#include "libavfilter/avcodec.h"
 #include "libavfilter/buffersink.h"
 #include "libavfilter/buffersrc.h"
 #include "libavutil/avutil.h"
@@ -115,7 +114,7 @@ static int init_filters(const char *filters_descr)
     AVFilter *buffersink = avfilter_get_by_name("ffbuffersink");
     AVFilterInOut *outputs = avfilter_inout_alloc();
     AVFilterInOut *inputs  = avfilter_inout_alloc();
-    enum PixelFormat pix_fmts[] = { PIX_FMT_YUV420P, PIX_FMT_NONE };
+    enum AVPixelFormat pix_fmts[] = { AV_PIX_FMT_YUV420P, AV_PIX_FMT_NONE };
     AVBufferSinkParams *buffersink_params;
 
     filter_graph = avfilter_graph_alloc();
